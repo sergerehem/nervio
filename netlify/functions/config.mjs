@@ -51,7 +51,8 @@ export default async (req) => {
   if (req.method === 'GET') {
     try {
       const cfg = await store.get('config', { type: 'json' });
-      return new Response(JSON.stringify(cfg || DEFAULT_CONFIG), {
+      const valid = cfg && Array.isArray(cfg.questions) && cfg.questions.length > 0;
+      return new Response(JSON.stringify(valid ? cfg : DEFAULT_CONFIG), {
         headers: { ...cors, 'Content-Type': 'application/json' },
       });
     } catch {

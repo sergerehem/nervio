@@ -537,7 +537,7 @@ function exportCSV() {
 
 /* ── Config ────────────────────────────────────── */
 function renderConfig() {
-  const cfg = CONFIG.questions ? CONFIG : DEFAULT_CONFIG;
+  const cfg = (CONFIG.questions && CONFIG.questions.length) ? CONFIG : DEFAULT_CONFIG;
   document.getElementById('cfg-welcome').value = cfg.welcome||'';
   document.getElementById('q-editor').innerHTML = (cfg.questions||[]).map((q,i)=>`
     <div class="cfg-row"><div class="cfg-lbl">Pergunta ${i+1}</div>
