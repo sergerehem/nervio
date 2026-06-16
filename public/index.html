@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="auto">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" id="meta-theme" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Nervio</title>
+<style>
+/* ── Tokens ─────────────────────────────────── */
+:root {
+  --bg:       #ffffff;
+  --bg2:      #f4f4f2;
+  --bg3:      #e8e8e5;
+  --border:   rgba(0,0,0,0.08);
+  --border2:  rgba(0,0,0,0.14);
+  --txt:      #111111;
+  --txt2:     #555555;
+  --txt3:     #909090;
+  --accent:   #1D9E75;
+  --accent-d: #0F6E56;
+  --bot-bg:   #f0f0ee;
+  --user-bg:  #1D9E75;
+  --user-txt: #ffffff;
+  --shadow:   0 1px 3px rgba(0,0,0,0.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:       #0d1117;
+    --bg2:      #161b22;
+    --bg3:      #21262d;
+    --border:   rgba(255,255,255,0.07);
+    --border2:  rgba(255,255,255,0.12);
+    --txt:      #e6edf3;
+    --txt2:     #8b949e;
+    --txt3:     #656d76;
+    --accent:   #2db876;
+    --accent-d: #1D9E75;
+    --bot-bg:   #1c2128;
+    --shadow:   0 1px 3px rgba(0,0,0,0.3);
+  }
+}
+[data-theme="dark"] {
+  --bg:       #0d1117;
+  --bg2:      #161b22;
+  --bg3:      #21262d;
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.12);
+  --txt:      #e6edf3;
+  --txt2:     #8b949e;
+  --txt3:     #656d76;
+  --accent:   #2db876;
+  --accent-d: #1D9E75;
+  --bot-bg:   #1c2128;
+  --shadow:   0 1px 3px rgba(0,0,0,0.3);
+}
+[data-theme="light"] {
+  --bg:#ffffff;--bg2:#f4f4f2;--bg3:#e8e8e5;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+  --txt:#111111;--txt2:#555555;--txt3:#909090;
+  --accent:#1D9E75;--accent-d:#0F6E56;
+  --bot-bg:#f0f0ee;--user-bg:#1D9E75;--user-txt:#ffffff;
+  --shadow:0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* ── Reset ───────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%;height:100dvh}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  background:var(--bg);color:var(--txt);font-size:16px;line-height:1.5;
+  height:100%;height:100dvh;
+  -webkit-text-size-adjust:100%;
+  transition:background .25s,color .25s;
+}
+
+/* ── App shell ───────────────────────────────── */
+.app{
+  max-width:540px;margin:0 auto;
+  height:100%;height:100dvh;
+  display:flex;flex-direction:column;
+  border-left:1px solid var(--border);
+  border-right:1px solid var(--border);
+}
+
+/* ── Header ──────────────────────────────────── */
+.hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;
+  padding-top:max(14px,env(safe-area-inset-top));
+  background:var(--bg);border-bottom:1px solid var(--border);
+  flex-shrink:0;position:sticky;top:0;z-index:10;
+}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.dot{
+  width:9px;height:9px;border-radius:50%;background:var(--accent);
+  animation:pulse 2.8s ease-in-out infinite;flex-shrink:0;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(.85)}}
+.hdr-name{font-weight:700;font-size:17px;color:var(--txt)}
+.hdr-sub{font-size:12px;color:var(--txt2);margin-top:1px}
+.theme-btn{
+  background:none;border:1px solid var(--border2);border-radius:9px;
+  padding:7px 10px;cursor:pointer;color:var(--txt2);font-size:15px;
+  min-width:40px;min-height:40px;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s,color .15s;-webkit-tap-highlight-color:transparent;
+}
+.theme-btn:hover{background:var(--bg2);color:var(--txt)}
+
+/* ── Messages area ───────────────────────────── */
+.msgs{
+  flex:1;overflow-y:auto;
+  padding:16px 16px 8px;
+  display:flex;flex-direction:column;gap:10px;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+}
+/* Bot bubble */
+.msg-bot{
+  background:var(--bot-bg);
+  border-radius:4px 18px 18px 18px;
+  padding:12px 15px;max-width:88%;
+  font-size:15px;line-height:1.6;color:var(--txt);
+  animation:fadeUp .22s ease;
+}
+/* User bubble */
+.msg-user{
+  background:var(--user-bg);color:var(--user-txt);
+  border-radius:18px 18px 4px 18px;
+  padding:12px 15px;max-width:88%;
+  align-self:flex-end;font-size:15px;
+  animation:fadeUp .18s ease;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* State card */
+.state-card{
+  border:1px solid var(--border2);border-radius:16px;overflow:hidden;
+  max-width:92%;animation:fadeUp .3s ease;
+}
+.state-tag{
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:8px 15px;
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;
+  color:var(--accent);
+}
+.state-sec{padding:11px 15px;border-bottom:1px solid var(--border);font-size:14px;line-height:1.55;color:var(--txt)}
+.state-sec:last-child{border-bottom:none}
+.state-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--txt3);margin-bottom:4px}
+
+/* Audio card */
+.audio-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:16px;
+  padding:15px;max-width:92%;animation:fadeUp .3s ease;
+}
+.audio-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--txt3);margin-bottom:5px}
+.audio-name{font-size:17px;font-weight:700;color:var(--txt);margin-bottom:12px}
+audio{width:100%;border-radius:8px;accent-color:var(--accent)}
+
+/* Typing indicator */
+.typing{
+  display:flex;gap:5px;
+  background:var(--bot-bg);border-radius:4px 18px 18px 18px;
+  padding:14px 17px;width:60px;
+  animation:fadeUp .2s ease;
+}
+.typing span{
+  width:6px;height:6px;border-radius:50%;background:var(--txt3);
+  animation:bop .9s infinite;
+}
+.typing span:nth-child(2){animation-delay:.15s}
+.typing span:nth-child(3){animation-delay:.3s}
+@keyframes bop{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+
+/* ── Bottom options bar ───────────────────────── */
+.bottom{
+  flex-shrink:0;
+  background:var(--bg);border-top:1px solid var(--border);
+  padding:10px 14px;
+  padding-bottom:max(12px,env(safe-area-inset-bottom));
+}
+.opts{display:flex;flex-direction:column;gap:7px}
+.opt-btn{
+  background:var(--bg);border:1.5px solid var(--border2);
+  border-radius:12px;padding:13px 16px;
+  font-size:15px;color:var(--txt);
+  cursor:pointer;text-align:left;font-family:inherit;
+  min-height:50px;width:100%;
+  transition:background .12s,border-color .12s,transform .1s;
+  -webkit-tap-highlight-color:transparent;
+}
+.opt-btn:hover{background:var(--bg2);border-color:var(--accent)}
+.opt-btn:active{transform:scale(.98)}
+
+/* Restart button */
+.restart-wrap{text-align:center;padding:8px 0}
+.restart-btn{
+  background:none;border:1.5px solid var(--border2);border-radius:20px;
+  padding:10px 24px;font-size:14px;color:var(--txt2);
+  cursor:pointer;font-family:inherit;
+  transition:background .12s,color .12s;
+  -webkit-tap-highlight-color:transparent;
+}
+.restart-btn:hover{background:var(--bg2);color:var(--txt)}
+
+/* ── Responsive: wider screens ───────────────── */
+@media(min-width:541px){
+  .app{border-radius:0;box-shadow:var(--shadow)}
+  body{background:var(--bg2);display:flex;align-items:center;justify-content:center}
+  .app{height:min(100dvh,780px);border-radius:20px;border:1px solid var(--border2)}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="hdr">
+    <div class="hdr-left">
+      <div class="dot" aria-hidden="true"></div>
+      <div>
+        <div class="hdr-name">Nervio</div>
+        <div class="hdr-sub">Respiração personalizada</div>
+      </div>
+    </div>
+    <button class="theme-btn" id="theme-btn" onclick="cycleTheme()" aria-label="Alternar tema">
+      <span id="theme-icon" aria-hidden="true">◐</span>
+    </button>
+  </header>
+
+  <main class="msgs" id="msgs" role="log" aria-live="polite" aria-label="Conversa com Nervio"></main>
+
+  <div class="bottom" id="bottom"></div>
+
+</div>
+<script>
+/* ── Theme ─────────────────────────────────────── */
+const HTML = document.documentElement;
+const ICON = document.getElementById('theme-icon');
+const META = document.getElementById('meta-theme');
+let theme = localStorage.getItem('nvtheme') || 'auto';
+const ICONS = { auto:'◐', dark:'☀', light:'☾' };
+const COLORS = { light:'#ffffff', dark:'#0d1117', auto:'#ffffff' };
+
+function applyTheme(t) {
+  if (t === 'auto') HTML.removeAttribute('data-theme');
+  else HTML.setAttribute('data-theme', t);
+  ICON.textContent = ICONS[t];
+  META.content = COLORS[t];
+}
+function cycleTheme() {
+  theme = { auto:'dark', dark:'light', light:'auto' }[theme];
+  localStorage.setItem('nvtheme', theme);
+  applyTheme(theme);
+}
+applyTheme(theme);
+
+/* ── Config (loaded from API, falls back to defaults) ── */
+const DEFAULT_CONFIG = {
+  welcome: 'Vou fazer 5 perguntas rápidas para entender como você está agora e indicar a prática de respiração mais adequada para este momento.',
+  questions: [
+    { text: 'Neste momento, qual dessas frases mais combina com você?', opts: [
+      {k:'A',v:'Minha cabeça não para.'},
+      {k:'B',v:'Estou com coisa demais para dar conta.'},
+      {k:'C',v:'Estou sem muita energia.'},
+      {k:'D',v:'Estou me sentindo bem e equilibrado.'},
+      {k:'E',v:'Tenho algo importante pela frente e quero estar no meu melhor.'}
+    ]},
+    { text: 'Como você descreveria sua mente agora?', opts: [
+      {k:'A',v:'Acelerada'},{k:'B',v:'Confusa'},{k:'C',v:'Lenta'},{k:'D',v:'Clara'},{k:'E',v:'Focada'}
+    ]},
+    { text: 'Como você percebe seu corpo neste momento?', opts: [
+      {k:'A',v:'Tenso'},{k:'B',v:'Sobrecarregado'},{k:'C',v:'Cansado'},{k:'D',v:'Confortável'},{k:'E',v:'Pronto para agir'}
+    ]},
+    { text: 'O que você sente que mais precisa agora?', opts: [
+      {k:'A',v:'Desacelerar'},{k:'B',v:'Organizar as ideias'},{k:'C',v:'Recuperar energia'},{k:'D',v:'Manter como estou'},{k:'E',v:'Entrar em modo de alta performance'}
+    ]},
+    { text: 'Pensando nas próximas horas, o que seria mais útil para você?', opts: [
+      {k:'A',v:'Mais calma'},{k:'B',v:'Mais clareza'},{k:'C',v:'Mais energia'},{k:'D',v:'Mais presença'},{k:'E',v:'Mais foco'}
+    ]}
+  ],
+  states: {
+    A:{ nome:'Cabeça a Mil', momento:'Sua mente está em modo acelerado — processando muitos estímulos ao mesmo tempo, sem conseguir desacelerar.', gera:'Dificuldade de foco, sensação de urgência constante e um leve esgotamento mesmo sem ter feito muito.', busca:'Vamos ativar o freio natural do seu sistema nervoso e trazer de volta a sensação de espaço interno.', audio:'BW Ansiedade e Pânico', url:'https://s3.sa-east-1.amazonaws.com/midia.marketing4nerds.com/download/BW+Ansiedade+e+Pa%CC%82nico.mp3' },
+    B:{ nome:'Sobrecarregado', momento:'Você está carregando mais do que consegue processar com tranquilidade — a sensação é de acúmulo e pressão.', gera:'Dificuldade para priorizar, mente congestionada e a sensação de que tudo é urgente ao mesmo tempo.', busca:'Vamos criar uma pausa estruturada para reorganizar o sistema e liberar a pressão interna.', audio:'Respiração Caixa', url:'https://s3.sa-east-1.amazonaws.com/midia.marketing4nerds.com/download/CAIXA+5min.mp3' },
+    C:{ nome:'Sem Energia', momento:'Seu sistema está operando em baixa potência — com lentidão, pouca disposição e sensação de cansaço.', gera:'Procrastinação, dificuldade de iniciativa e uma sensação de distância das coisas ao redor.', busca:'Vamos ativar suavemente o seu sistema para recuperar clareza e disposição.', audio:'Foco 4-4', url:'https://s3.sa-east-1.amazonaws.com/midia.marketing4nerds.com/download/FOCO+4-4+5min.mp3' },
+    D:{ nome:'Equilíbrio', momento:'Você está em um bom momento — estável, presente e com o sistema funcionando de forma saudável.', gera:'Mais clareza nas decisões, presença nas relações e capacidade de responder bem ao que aparece.', busca:'Vamos consolidar esse estado com uma prática de coerência para manter e aprofundar o equilíbrio.', audio:'Respiração Coerente', url:'https://s3.sa-east-1.amazonaws.com/midia.marketing4nerds.com/download/COERENTE+5min.mp3' },
+    E:{ nome:'Alta Performance', momento:'Você está se preparando para dar o seu melhor — com foco, presença e disposição para executar.', gera:'Clareza de intenção, maior capacidade de concentração e menos dispersão nas ações.', busca:'Vamos calibrar seu sistema para entrar em modo de alta performance com mais precisão e presença.', audio:'Foco 4-4', url:'https://s3.sa-east-1.amazonaws.com/midia.marketing4nerds.com/download/FOCO+4-4+5min.mp3' }
+  }
+};
+
+let CONFIG = DEFAULT_CONFIG;
+let answers = [];
+const msgs = document.getElementById('msgs');
+const bottom = document.getElementById('bottom');
+
+const scroll = () => setTimeout(() => msgs.scrollTop = msgs.scrollHeight, 40);
+
+/* ── DOM helpers ─────────────────────────────── */
+function addBot(text) {
+  const d = document.createElement('div');
+  d.className = 'msg-bot'; d.textContent = text;
+  msgs.appendChild(d); scroll();
+}
+function addUser(text) {
+  const d = document.createElement('div');
+  d.className = 'msg-user'; d.textContent = text;
+  msgs.appendChild(d); scroll();
+}
+function typing(ms) {
+  return new Promise(r => {
+    const d = document.createElement('div');
+    d.className = 'typing';
+    d.innerHTML = '<span></span><span></span><span></span>';
+    msgs.appendChild(d); scroll();
+    setTimeout(() => { d.remove(); r(); }, ms);
+  });
+}
+function showOpts(opts, cb) {
+  bottom.innerHTML = '';
+  const div = document.createElement('div'); div.className = 'opts';
+  opts.forEach(o => {
+    const b = document.createElement('button'); b.className = 'opt-btn';
+    b.textContent = `${o.k}) ${o.v}`;
+    b.onclick = () => { bottom.innerHTML = ''; cb(o); };
+    div.appendChild(b);
+  });
+  bottom.appendChild(div);
+}
+function stateCard(s) {
+  const d = document.createElement('div'); d.className = 'state-card';
+  d.innerHTML = `<div class="state-tag">Estado identificado · ${s.nome}</div>
+    <div class="state-sec"><div class="state-lbl">Seu momento atual</div>${s.momento}</div>
+    <div class="state-sec"><div class="state-lbl">O que isso costuma gerar</div>${s.gera}</div>
+    <div class="state-sec"><div class="state-lbl">O que vamos buscar agora</div>${s.busca}</div>`;
+  msgs.appendChild(d); scroll();
+}
+function audioCard(s) {
+  const d = document.createElement('div'); d.className = 'audio-card';
+  d.innerHTML = `<div class="audio-tag">Prática recomendada</div>
+    <div class="audio-name">${s.audio}</div>
+    <audio controls preload="metadata"><source src="${s.url}" type="audio/mpeg">Áudio não suportado.</audio>`;
+  msgs.appendChild(d); scroll();
+}
+
+/* ── Logic ───────────────────────────────────── */
+function classify(a) {
+  const c = {A:0,B:0,C:0,D:0,E:0};
+  a.forEach(x => c[x]++);
+  let m = 0, w = 'A';
+  ['A','B','C','E','D'].forEach(k => { if (c[k] > m) { m = c[k]; w = k; } });
+  return w;
+}
+
+async function askQ(i) {
+  const q = CONFIG.questions[i];
+  await typing(480);
+  addBot(`${i + 1} de 5  —  ${q.text}`);
+  showOpts(q.opts, async o => {
+    addUser(`${o.k}) ${o.v}`);
+    answers.push(o.k);
+    answers.length < CONFIG.questions.length ? askQ(answers.length) : showResult();
+  });
+}
+
+async function showResult() {
+  const key = classify(answers);
+  const s = CONFIG.states[key];
+  const sessionId = Date.now().toString(36);
+
+  await typing(900);
+  addBot('Entendi. Analisando o seu momento atual...');
+  await typing(1300);
+  stateCard(s);
+  await typing(600);
+  addBot(`A prática indicada para você agora é ${s.audio}. Quando estiver pronto, dê play:`);
+  audioCard(s);
+
+  fetch('/api/sessions', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ id:sessionId, state:key, stateName:s.nome, practice:s.audio, answers, ts:new Date().toISOString() })
+  }).catch(() => {});
+
+  await typing(800);
+  addBot('Após a prática, como você está?');
+  showOpts([
+    {k:'1',v:'Muito melhor'},{k:'2',v:'Um pouco melhor'},
+    {k:'3',v:'Igual'},{k:'4',v:'Pior'}
+  ], async o => {
+    addUser(o.v);
+    fetch('/api/sessions', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ id:sessionId, state:key, stateName:s.nome, practice:s.audio, answers, feedback:o.v, feedbackKey:o.k, ts:new Date().toISOString() })
+    }).catch(() => {});
+    const msg = {
+      '1': 'Ótimo! Fico feliz que tenha ajudado. Volte sempre que precisar de uma pausa.',
+      '2': 'Bom sinal. O sistema nervoso às vezes precisa de alguns minutos para integrar.',
+      '3': 'Tudo bem. Cada momento é diferente. Pode tentar novamente em alguns minutos.',
+      '4': 'Obrigado por compartilhar. Se não foi desta vez, tudo bem — pode voltar quando quiser.'
+    };
+    await typing(550);
+    addBot(msg[o.k] + ' 🌿');
+    bottom.innerHTML = '<div class="restart-wrap"><button class="restart-btn" onclick="restart()">Começar de novo</button></div>';
+  });
+}
+
+function restart() {
+  answers = [];
+  msgs.innerHTML = '';
+  bottom.innerHTML = '';
+  start();
+}
+
+async function start() {
+  try {
+    const r = await fetch('/api/config');
+    if (r.ok) CONFIG = await r.json();
+  } catch(e) {}
+  await typing(450);
+  addBot('Olá! Sou o Nervio. 🌿');
+  await typing(550);
+  addBot(CONFIG.welcome);
+  await typing(380);
+  askQ(0);
+}
+
+start();
+</script>
+</body>
+</html>

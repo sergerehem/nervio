@@ -1,0 +1,12 @@
+{
+  "name": "nervio",
+  "version": "1.0.0",
+  "description": "Agente de respiração personalizada Nervio",
+  "type": "module",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

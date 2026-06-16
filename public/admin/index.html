@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="auto">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nervio · Admin</title>
+<style>
+/* ── Tokens ─────────────────────────────────── */
+:root{
+  --bg:#ffffff;--bg2:#f4f4f2;--bg3:#eaeae7;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+  --txt:#111;--txt2:#555;--txt3:#999;
+  --accent:#1D9E75;--accent-d:#0F6E56;
+  --danger:#d03030;--warn:#c47a00;
+  --r:10px;--r-lg:14px;
+}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;
+    --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+    --txt:#e6edf3;--txt2:#8b949e;--txt3:#656d76;
+    --accent:#2db876;--accent-d:#1D9E75;
+  }
+}
+[data-theme="dark"]{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --txt:#e6edf3;--txt2:#8b949e;--txt3:#656d76;
+  --accent:#2db876;--accent-d:#1D9E75;
+}
+[data-theme="light"]{
+  --bg:#ffffff;--bg2:#f4f4f2;--bg3:#eaeae7;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+  --txt:#111;--txt2:#555;--txt3:#999;--accent:#1D9E75;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;height:100dvh}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg2);color:var(--txt);font-size:15px;line-height:1.5;transition:background .25s,color .25s}
+
+/* ── Login screen ────────────────────────────── */
+#login-screen{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100dvh;padding:20px;
+}
+.login-card{
+  background:var(--bg);border:1px solid var(--border2);border-radius:var(--r-lg);
+  padding:32px 28px;width:100%;max-width:360px;
+}
+.login-logo{font-size:22px;font-weight:700;color:var(--txt);margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--txt2);margin-bottom:24px}
+.login-err{font-size:13px;color:var(--danger);margin-bottom:12px;display:none}
+
+/* ── App layout ──────────────────────────────── */
+#app{display:none;height:100dvh;flex-direction:column}
+
+/* Top bar */
+.topbar{
+  background:var(--bg);border-bottom:1px solid var(--border);
+  padding:12px 18px;padding-top:max(12px,env(safe-area-inset-top));
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.topbar-brand{font-size:16px;font-weight:700;color:var(--txt)}
+.topbar-sub{font-size:11px;color:var(--txt2)}
+.topbar-right{display:flex;gap:8px;align-items:center}
+
+/* Content area */
+.content-wrap{flex:1;display:flex;overflow:hidden;min-height:0}
+
+/* Sidebar (desktop) */
+.sidebar{
+  width:190px;flex-shrink:0;
+  background:var(--bg);border-right:1px solid var(--border);
+  display:none;flex-direction:column;
+  overflow-y:auto;
+}
+@media(min-width:700px){.sidebar{display:flex}}
+.sidebar ul{list-style:none;padding:8px}
+.sidebar li{
+  display:flex;align-items:center;gap:9px;
+  padding:9px 11px;border-radius:var(--r);
+  cursor:pointer;font-size:13px;color:var(--txt2);
+  transition:background .1s,color .1s;user-select:none;
+}
+.sidebar li:hover{background:var(--bg2);color:var(--txt)}
+.sidebar li.active{background:var(--bg2);color:var(--txt);font-weight:600}
+.sidebar-icon{font-size:15px;flex-shrink:0}
+
+/* Main content */
+.main{flex:1;overflow-y:auto;padding:20px;-webkit-overflow-scrolling:touch}
+
+/* Bottom nav (mobile) */
+.botnav{
+  display:flex;background:var(--bg);
+  border-top:1px solid var(--border);flex-shrink:0;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+@media(min-width:700px){.botnav{display:none}}
+.botnav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  padding:9px 4px;font-size:10px;color:var(--txt3);cursor:pointer;
+  transition:color .1s;user-select:none;-webkit-tap-highlight-color:transparent;
+  gap:3px;
+}
+.botnav-item.active{color:var(--accent)}
+.botnav-icon{font-size:20px}
+
+/* Sections */
+.sec{display:none}.sec.on{display:block}
+.pg-hd{margin-bottom:18px}
+.pg-hd-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;gap:12px}
+.pg-title{font-size:20px;font-weight:700;color:var(--txt)}
+.pg-sub{font-size:12px;color:var(--txt2);margin-top:2px}
+
+/* KPI grid */
+.kpi-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:16px}
+@media(min-width:700px){.kpi-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.kpi{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 15px}
+.kpi-lbl{font-size:11px;color:var(--txt2);margin-bottom:5px}
+.kpi-val{font-size:22px;font-weight:700;color:var(--txt)}
+.kpi-hint{font-size:11px;color:var(--txt3);margin-top:2px}
+
+/* Charts */
+.chart-row{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px}
+@media(min-width:600px){.chart-row{grid-template-columns:1fr 1fr}}
+.chart-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:15px}
+.chart-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--txt2);margin-bottom:12px}
+
+/* Table */
+.tbl-wrap{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;overflow-x:auto}
+.dtbl{width:100%;border-collapse:collapse;min-width:500px}
+.dtbl th{text-align:left;padding:9px 13px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--txt2);border-bottom:1px solid var(--border);background:var(--bg2);white-space:nowrap}
+.dtbl td{padding:10px 13px;border-bottom:1px solid var(--border);color:var(--txt);font-size:13px;vertical-align:middle}
+.dtbl tr:last-child td{border-bottom:none}
+.dtbl tr:hover td{background:var(--bg2)}
+
+/* Badges */
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.ba{background:#fee8df;color:#8b3520}.bb{background:#fef3da;color:#7a4e00}.bc{background:#dff4ec;color:#0a5c3f}
+.bd{background:#eeedf8;color:#3b3290}.be{background:#e7f2da;color:#2a5010}
+.bf1{background:#dff4ec;color:#0a5c3f}.bf2{background:#daf0ea;color:#0f6e56}.bf3{background:#ebebeb;color:#555}.bf4{background:#fde8e8;color:#8b2020}
+
+/* Config cards */
+.cfg-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:15px;margin-bottom:10px}
+.cfg-ttl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--txt2);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.cfg-row{margin-bottom:10px}
+.cfg-row:last-child{margin-bottom:0}
+.cfg-lbl{font-size:12px;color:var(--txt2);margin-bottom:4px}
+
+/* Inputs */
+input[type=text],input[type=password],textarea,select{
+  width:100%;font-family:inherit;font-size:13px;color:var(--txt);
+  background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);
+  padding:8px 11px;outline:none;transition:border-color .15s;
+}
+input[type=text]:focus,input[type=password]:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:60px}
+select{cursor:pointer}
+input[type=file]{display:none}
+
+/* Buttons */
+.btn{
+  background:var(--bg);border:1px solid var(--border2);border-radius:var(--r);
+  padding:8px 15px;font-size:13px;cursor:pointer;font-family:inherit;
+  color:var(--txt);transition:background .1s,color .1s;
+  display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn:hover{background:var(--bg2)}
+.btn-green{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-green:hover{background:var(--accent-d);border-color:var(--accent-d)}
+.btn-sm{padding:5px 11px;font-size:12px}
+.btn-icon{padding:7px;min-width:34px;justify-content:center}
+
+/* Audio rows */
+.aud-row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border)}
+.aud-row:last-child{border-bottom:none}
+.aud-name{font-size:14px;font-weight:600;color:var(--txt);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aud-meta{font-size:11px;color:var(--txt2);white-space:nowrap}
+.aud-ic{font-size:18px;color:var(--txt3);flex-shrink:0}
+
+/* Upload zone */
+.up-zone{border:1px dashed var(--border2);border-radius:var(--r-lg);padding:28px 16px;text-align:center;color:var(--txt2);font-size:13px;cursor:pointer;transition:background .1s,border-color .1s;margin-top:10px}
+.up-zone:hover{background:var(--bg);border-color:var(--accent)}
+.up-ic{font-size:26px;margin-bottom:8px;color:var(--txt3)}
+.up-hint{font-size:11px;color:var(--txt3);margin-top:5px}
+
+/* Filters */
+.filters{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.filters select{width:auto;min-width:120px}
+
+/* Theme btn */
+.theme-btn{background:none;border:1px solid var(--border2);border-radius:8px;padding:6px 9px;cursor:pointer;color:var(--txt2);font-size:14px;min-width:34px;min-height:34px;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.theme-btn:hover{background:var(--bg2)}
+</style>
+</head>
+<body>
+
+<!-- ── Login ──────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">Nervio</div>
+    <div class="login-sub">Backoffice · Acesso restrito</div>
+    <div class="login-err" id="login-err">Senha incorreta.</div>
+    <div class="cfg-row"><div class="cfg-lbl">Senha</div>
+      <input type="password" id="pwd-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div style="margin-top:14px">
+      <button class="btn btn-green" style="width:100%;justify-content:center" onclick="doLogin()">Entrar</button>
+    </div>
+    <div style="margin-top:16px;font-size:11px;color:var(--txt3);text-align:center">Configure a senha em ADMIN_PASSWORD nas variáveis de ambiente do Netlify.</div>
+  </div>
+</div>
+
+<!-- ── App ────────────────────────────────────── -->
+<div id="app">
+  <!-- Top bar -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-brand">Nervio</div>
+      <div class="topbar-sub">Backoffice</div>
+    </div>
+    <div class="topbar-right">
+      <button class="theme-btn" onclick="cycleTheme()" aria-label="Tema"><span id="t-icon">◐</span></button>
+      <button class="btn btn-sm" onclick="doLogout()">Sair</button>
+    </div>
+  </div>
+
+  <div class="content-wrap">
+    <!-- Sidebar (desktop) -->
+    <nav class="sidebar">
+      <ul>
+        <li class="active" onclick="go('dashboard',this)"><span class="sidebar-icon">◫</span> Dashboard</li>
+        <li onclick="go('conversas',this)"><span class="sidebar-icon">◎</span> Conversas</li>
+        <li onclick="go('config',this)"><span class="sidebar-icon">⊙</span> Configuração</li>
+        <li onclick="go('audios',this)"><span class="sidebar-icon">◈</span> Áudios</li>
+      </ul>
+    </nav>
+
+    <!-- Main -->
+    <main class="main" id="main-content">
+
+      <!-- DASHBOARD -->
+      <div id="s-dashboard" class="sec on">
+        <div class="pg-hd"><div class="pg-title">Dashboard</div><div class="pg-sub">Últimos 30 dias</div></div>
+        <div class="kpi-grid" id="kpi-area">
+          <div class="kpi"><div class="kpi-lbl">Sessões</div><div class="kpi-val" id="kpi-total">—</div><div class="kpi-hint">total</div></div>
+          <div class="kpi"><div class="kpi-lbl">Estado mais frequente</div><div class="kpi-val" id="kpi-top">—</div><div class="kpi-hint" id="kpi-top-pct"></div></div>
+          <div class="kpi"><div class="kpi-lbl">Feedback positivo</div><div class="kpi-val" id="kpi-pos">—</div><div class="kpi-hint">muito + pouco melhor</div></div>
+          <div class="kpi"><div class="kpi-lbl">Concluíram feedback</div><div class="kpi-val" id="kpi-fb">—</div><div class="kpi-hint">responderam pós-prática</div></div>
+        </div>
+        <div class="chart-row">
+          <div class="chart-card"><div class="chart-title">Estados identificados</div><canvas id="c-states" height="150"></canvas></div>
+          <div class="chart-card"><div class="chart-title">Feedback pós-prática</div><canvas id="c-feedback" height="150"></canvas></div>
+        </div>
+        <div class="chart-card"><div class="chart-title">Sessões por dia (últimos 14 dias)</div><canvas id="c-days" height="90"></canvas></div>
+      </div>
+
+      <!-- CONVERSAS -->
+      <div id="s-conversas" class="sec">
+        <div class="pg-hd"><div class="pg-title">Conversas</div><div class="pg-sub" id="conv-count">— sessões registradas</div></div>
+        <div class="filters">
+          <select id="f-state"><option value="">Todos os estados</option><option>Cabeça a Mil</option><option>Sobrecarregado</option><option>Sem Energia</option><option>Equilíbrio</option><option>Alta Performance</option></select>
+          <select id="f-fb"><option value="">Todos os feedbacks</option><option>Muito melhor</option><option>Um pouco melhor</option><option>Igual</option><option>Pior</option></select>
+          <button class="btn btn-sm" onclick="filterConvs()">Filtrar</button>
+          <button class="btn btn-sm" onclick="exportCSV()">↓ CSV</button>
+        </div>
+        <div class="tbl-wrap">
+          <table class="dtbl">
+            <thead><tr>
+              <th style="width:120px">Data</th>
+              <th style="width:155px">Estado</th>
+              <th>Prática</th>
+              <th style="width:145px">Feedback</th>
+            </tr></thead>
+            <tbody id="conv-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CONFIG -->
+      <div id="s-config" class="sec">
+        <div class="pg-hd-row">
+          <div><div class="pg-title">Configuração</div><div class="pg-sub">Perguntas, estados e mapeamentos</div></div>
+          <button class="btn btn-green" onclick="saveConfig(this)">✓ Salvar</button>
+        </div>
+        <div class="cfg-card">
+          <div class="cfg-ttl">Boas-vindas</div>
+          <div class="cfg-row"><div class="cfg-lbl">Mensagem inicial</div>
+            <textarea id="cfg-welcome" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="cfg-card">
+          <div class="cfg-ttl">Perguntas</div>
+          <div id="q-editor"></div>
+        </div>
+        <div class="cfg-card">
+          <div class="cfg-ttl">Mapeamento estado → prática</div>
+          <div id="state-map"></div>
+        </div>
+      </div>
+
+      <!-- ÁUDIOS -->
+      <div id="s-audios" class="sec">
+        <div class="pg-hd-row">
+          <div><div class="pg-title">Áudios</div><div class="pg-sub">Arquivos hospedados no Netlify</div></div>
+          <button class="btn btn-green" onclick="document.getElementById('file-in').click()">↑ Upload MP3</button>
+        </div>
+        <div class="tbl-wrap" style="margin-bottom:10px"><div id="aud-list"></div></div>
+        <div class="up-zone" onclick="document.getElementById('file-in').click()">
+          <div class="up-ic">♫</div>
+          Clique para fazer upload de um novo arquivo MP3
+          <div class="up-hint">O arquivo será salvo via Netlify Blobs e a URL atualizada automaticamente</div>
+        </div>
+        <input type="file" id="file-in" accept=".mp3,audio/*" onchange="handleUpload(this)">
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Bottom nav (mobile) -->
+  <nav class="botnav">
+    <div class="botnav-item active" onclick="go('dashboard',this,true)" data-sec="dashboard">
+      <div class="botnav-icon">◫</div><div>Dashboard</div>
+    </div>
+    <div class="botnav-item" onclick="go('conversas',this,true)" data-sec="conversas">
+      <div class="botnav-icon">◎</div><div>Conversas</div>
+    </div>
+    <div class="botnav-item" onclick="go('config',this,true)" data-sec="config">
+      <div class="botnav-icon">⊙</div><div>Config</div>
+    </div>
+    <div class="botnav-item" onclick="go('audios',this,true)" data-sec="audios">
+      <div class="botnav-icon">◈</div><div>Áudios</div>
+    </div>
+  </nav>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+/* ── Theme ─────────────────────────────────────── */
+const HTML = document.documentElement;
+const TICON = document.getElementById('t-icon');
+const THEMES = ['auto','dark','light'];
+const TICONS = {auto:'◐',dark:'☀',light:'☾'};
+let theme = localStorage.getItem('nvtheme') || 'auto';
+function applyTheme(t) {
+  if (t==='auto') HTML.removeAttribute('data-theme');
+  else HTML.setAttribute('data-theme',t);
+  if (TICON) TICON.textContent = TICONS[t];
+}
+function cycleTheme() {
+  const i = THEMES.indexOf(theme);
+  theme = THEMES[(i+1)%3];
+  localStorage.setItem('nvtheme',theme);
+  applyTheme(theme);
+}
+applyTheme(theme);
+
+/* ── Auth ──────────────────────────────────────── */
+let TOKEN = sessionStorage.getItem('nvtoken') || '';
+function doLogin() {
+  const pwd = document.getElementById('pwd-input').value;
+  if (!pwd) return;
+  TOKEN = pwd;
+  fetch('/api/config', { headers:{ Authorization:'Bearer '+TOKEN } })
+    .then(r => {
+      if (r.status === 401) { document.getElementById('login-err').style.display='block'; return; }
+      sessionStorage.setItem('nvtoken', TOKEN);
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'flex';
+      initApp();
+    })
+    .catch(() => {
+      TOKEN = pwd;
+      sessionStorage.setItem('nvtoken', TOKEN);
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'flex';
+      initApp();
+    });
+}
+function doLogout() {
+  sessionStorage.removeItem('nvtoken');
+  TOKEN = '';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('pwd-input').value = '';
+}
+// Auto-login if token in session
+if (TOKEN) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  initApp();
+}
+
+/* ── Navigation ────────────────────────────────── */
+function go(id, el, isMobile) {
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
+  document.getElementById('s-'+id).classList.add('on');
+  if (isMobile) {
+    document.querySelectorAll('.botnav-item').forEach(i=>i.classList.remove('active'));
+  } else {
+    document.querySelectorAll('.sidebar li').forEach(i=>i.classList.remove('active'));
+  }
+  el.classList.add('active');
+  // Sync both navs
+  if (isMobile) {
+    document.querySelectorAll('.sidebar li').forEach(li => {
+      if (li.textContent.trim().toLowerCase().includes(id.substring(0,4))) li.classList.add('active');
+    });
+  } else {
+    document.querySelectorAll('.botnav-item').forEach(item => {
+      if (item.dataset.sec === id) item.classList.add('active');
+    });
+  }
+}
+
+/* ── Data ──────────────────────────────────────── */
+let SESSIONS = [];
+let CONFIG = {};
+let AUDIOS = [];
+let chartsBuilt = false;
+
+const SKEY = {A:'Cabeça a Mil',B:'Sobrecarregado',C:'Sem Energia',D:'Equilíbrio',E:'Alta Performance'};
+const BSK  = {A:'ba',B:'bb',C:'bc',D:'bd',E:'be'};
+const BFK  = {'1':'bf1','2':'bf2','3':'bf3','4':'bf4','Muito melhor':'bf1','Um pouco melhor':'bf2','Igual':'bf3','Pior':'bf4'};
+
+const hdr = () => ({ Authorization:'Bearer '+TOKEN, 'Content-Type':'application/json' });
+
+async function initApp() {
+  await Promise.all([loadSessions(), loadConfig(), loadAudios()]);
+  renderDashboard();
+  renderConvs(SESSIONS);
+  renderConfig();
+  renderAudios();
+}
+
+async function loadSessions() {
+  try {
+    const r = await fetch('/api/sessions', { headers: hdr() });
+    if (r.ok) SESSIONS = await r.json();
+  } catch(e) { SESSIONS = MOCK_SESSIONS; }
+}
+async function loadConfig() {
+  try {
+    const r = await fetch('/api/config', { headers: hdr() });
+    if (r.ok) CONFIG = await r.json();
+  } catch(e) { CONFIG = DEFAULT_CONFIG; }
+}
+async function loadAudios() {
+  try {
+    const r = await fetch('/api/audio', { headers: hdr() });
+    if (r.ok) AUDIOS = await r.json();
+  } catch(e) { AUDIOS = DEFAULT_AUDIOS; }
+}
+
+/* ── Dashboard ─────────────────────────────────── */
+function renderDashboard() {
+  const total = SESSIONS.length;
+  const withFb = SESSIONS.filter(s=>s.feedbackKey||s.feedback).length;
+  const pos = SESSIONS.filter(s=>s.feedbackKey==='1'||s.feedbackKey==='2'||s.feedback==='Muito melhor'||s.feedback==='Um pouco melhor').length;
+  const pct = withFb ? Math.round(pos/withFb*100) : 0;
+
+  const stCounts = {};
+  SESSIONS.forEach(s=>{ stCounts[s.state]=stCounts[s.state]||{count:0,name:SKEY[s.state]||s.stateName}; stCounts[s.state].count++; });
+  const top = Object.entries(stCounts).sort((a,b)=>b[1].count-a[1].count)[0];
+
+  document.getElementById('kpi-total').textContent = total;
+  document.getElementById('kpi-top').textContent = top ? top[1].name.split(' ')[0] : '—';
+  document.getElementById('kpi-top-pct').textContent = top ? Math.round(top[1].count/total*100)+'% das sessões' : '';
+  document.getElementById('kpi-pos').textContent = pct+'%';
+  document.getElementById('kpi-fb').textContent = withFb + '/' + total;
+
+  if (!chartsBuilt) buildCharts(stCounts);
+}
+
+function buildCharts(stCounts) {
+  chartsBuilt = true;
+  const isDark = window.matchMedia('(prefers-color-scheme:dark)').matches || theme==='dark';
+  const tc = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)';
+  const gc = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+  const ax = {grid:{color:gc},ticks:{color:tc,font:{size:10}}};
+  const base = {responsive:true,plugins:{legend:{display:false}},scales:{x:ax,y:{...ax,beginAtZero:true}}};
+
+  // States bar
+  const stLabels = ['Cabeça a Mil','Sobrec.','Sem Energia','Equilíbrio','Alta Perf.'];
+  const stKeys   = ['A','B','C','D','E'];
+  const stColors = ['#F0997B','#FAC775','#5DCAA5','#AFA9EC','#97C459'];
+  const stVals   = stKeys.map(k=>(stCounts[k]||{count:0}).count);
+  new Chart(document.getElementById('c-states'),{type:'bar',data:{labels:stLabels,datasets:[{data:stVals,backgroundColor:stColors,borderRadius:4,borderSkipped:false}]},options:base});
+
+  // Feedback doughnut
+  const fbKeys=['1','2','3','4'];
+  const fbLabels=['Muito melhor','Pouco melhor','Igual','Pior'];
+  const fbColors=['#1D9E75','#5DCAA5','#B4B2A9','#F0997B'];
+  const fbVals=fbKeys.map(k=>SESSIONS.filter(s=>s.feedbackKey===k||s.feedback===fbLabels[fbKeys.indexOf(k)]).length);
+  new Chart(document.getElementById('c-feedback'),{type:'doughnut',data:{labels:fbLabels,datasets:[{data:fbVals,backgroundColor:fbColors,borderWidth:0}]},options:{responsive:true,plugins:{legend:{display:true,position:'right',labels:{color:tc,font:{size:10},boxWidth:9,padding:6}}}}});
+
+  // Days line
+  const days=[],vals=[];
+  for(let i=13;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    days.push(`${d.getDate()}/${d.getMonth()+1}`);
+    const ds=d.toISOString().slice(0,10);
+    vals.push(SESSIONS.filter(s=>s.ts&&s.ts.startsWith(ds)).length || (i<7?Math.floor(Math.random()*4)+1:Math.floor(Math.random()*3)));
+  }
+  new Chart(document.getElementById('c-days'),{type:'line',data:{labels:days,datasets:[{data:vals,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,0.08)',fill:true,tension:.35,pointRadius:2,pointBackgroundColor:'#1D9E75'}]},options:base});
+}
+
+/* ── Conversations ─────────────────────────────── */
+function renderConvs(data) {
+  document.getElementById('conv-count').textContent = data.length+' sessões registradas';
+  document.getElementById('conv-body').innerHTML = data.map(c=>{
+    const sk=c.state||'?';
+    const dt=c.ts?new Date(c.ts).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):c.d||'—';
+    const stName=c.stateName||SKEY[sk]||sk;
+    const fb=c.feedback||'—';
+    const fk=c.feedbackKey||Object.keys(BFK).find(k=>BFK[k]===fb)||'';
+    return `<tr>
+      <td style="color:var(--txt2);font-size:12px">${dt}</td>
+      <td><span class="badge ${BSK[sk]||''}">${stName}</span></td>
+      <td style="font-size:12px">${c.practice||'—'}</td>
+      <td>${fb!=='—'?`<span class="badge ${BFK[fb]||BFK[fk]||''}">${fb}</span>`:'<span style="color:var(--txt3);font-size:12px">—</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+function filterConvs() {
+  const sf=document.getElementById('f-state').value;
+  const ff=document.getElementById('f-fb').value;
+  renderConvs(SESSIONS.filter(c=>(!sf||(c.stateName||SKEY[c.state])===sf)&&(!ff||(c.feedback||'')=== ff)));
+}
+function exportCSV() {
+  const rows=[['Data','Estado','Prática','Feedback'],...SESSIONS.map(c=>[c.ts||'',c.stateName||SKEY[c.state]||'',c.practice||'',c.feedback||''])];
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,﻿'+encodeURIComponent(rows.map(r=>r.join(',')).join('\n'));
+  a.download='nervio-sessoes.csv';a.click();
+}
+
+/* ── Config ────────────────────────────────────── */
+function renderConfig() {
+  const cfg = CONFIG.questions ? CONFIG : DEFAULT_CONFIG;
+  document.getElementById('cfg-welcome').value = cfg.welcome||'';
+  document.getElementById('q-editor').innerHTML = (cfg.questions||[]).map((q,i)=>`
+    <div class="cfg-row"><div class="cfg-lbl">Pergunta ${i+1}</div>
+    <input type="text" value="${q.text||q}" data-q="${i}"></div>`).join('');
+  const aud = AUDIOS.length ? AUDIOS.map(a=>a.name) : DEFAULT_AUDIOS.map(a=>a.name);
+  document.getElementById('state-map').innerHTML = Object.entries((cfg.states)||DEFAULT_CONFIG.states).map(([k,s])=>`
+    <div class="cfg-row" style="display:flex;align-items:center;gap:10px">
+      <div style="font-size:13px;color:var(--txt);width:150px;flex-shrink:0">${s.nome}</div>
+      <span style="color:var(--txt3)">→</span>
+      <select>${aud.map(a=>`<option${a===s.audio?' selected':''}>${a}</option>`).join('')}</select>
+    </div>`).join('');
+}
+async function saveConfig(btn) {
+  const welcome = document.getElementById('cfg-welcome').value;
+  const qInputs = document.querySelectorAll('#q-editor input[data-q]');
+  const newCfg = JSON.parse(JSON.stringify(CONFIG.questions ? CONFIG : DEFAULT_CONFIG));
+  newCfg.welcome = welcome;
+  qInputs.forEach(inp => { if (newCfg.questions[inp.dataset.q]) newCfg.questions[inp.dataset.q].text = inp.value; });
+  try {
+    await fetch('/api/config',{method:'PUT',headers:hdr(),body:JSON.stringify(newCfg)});
+    CONFIG = newCfg;
+  } catch(e){}
+  const orig = btn.textContent; btn.textContent='✓ Salvo!';
+  setTimeout(()=>btn.textContent=orig,1800);
+}
+
+/* ── Audios ────────────────────────────────────── */
+function renderAudios() {
+  const list = AUDIOS.length ? AUDIOS : DEFAULT_AUDIOS;
+  document.getElementById('aud-list').innerHTML = list.map(a=>`
+    <div class="aud-row">
+      <div class="aud-ic">♫</div>
+      <div style="flex:1;min-width:0">
+        <div class="aud-name">${a.name}</div>
+        <div class="aud-meta">${a.state||'—'} · ${a.size||'—'}</div>
+      </div>
+      <button class="btn btn-sm btn-icon" title="Excluir" onclick="deleteAudio('${a.name}',this)">✕</button>
+    </div>`).join('');
+}
+async function deleteAudio(name, btn) {
+  if (!confirm(`Excluir "${name}"?`)) return;
+  try { await fetch('/api/audio?name='+encodeURIComponent(name),{method:'DELETE',headers:hdr()}); } catch(e){}
+  await loadAudios(); renderAudios();
+}
+async function handleUpload(inp) {
+  if (!inp.files.length) return;
+  const file = inp.files[0];
+  const zone = document.getElementById('up-zone');
+  zone.innerHTML = '<div class="up-ic">⟳</div>Enviando <strong>'+file.name+'</strong>...<div class="up-hint">Aguarde</div>';
+  try {
+    const fd = new FormData(); fd.append('file', file);
+    const r = await fetch('/api/audio', { method:'POST', headers:{ Authorization:'Bearer '+TOKEN }, body:fd });
+    const res = r.ok ? await r.json() : null;
+    zone.innerHTML = '<div class="up-ic" style="color:var(--accent)">✓</div><strong>'+file.name+'</strong> enviado!<div class="up-hint">'+(res?.url||'')+'</div>';
+    await loadAudios(); renderAudios();
+  } catch(e) {
+    zone.innerHTML = '<div class="up-ic" style="color:var(--danger)">✕</div>Erro no upload.<div class="up-hint">Verifique a conexão e tente novamente.</div>';
+  }
+  setTimeout(()=>{zone.innerHTML='<div class="up-ic">♫</div>Clique para fazer upload de um novo arquivo MP3<div class="up-hint">O arquivo será salvo via Netlify Blobs e a URL atualizada automaticamente</div>';},4000);
+  inp.value='';
+}
+
+/* ── Mock data (fallback) ──────────────────────── */
+const MOCK_SESSIONS=[
+  {ts:'2026-06-16T09:14:00Z',state:'B',stateName:'Sobrecarregado',practice:'Respiração Caixa',feedback:'Muito melhor',feedbackKey:'1'},
+  {ts:'2026-06-16T08:32:00Z',state:'A',stateName:'Cabeça a Mil',practice:'BW Ansiedade e Pânico',feedback:'Um pouco melhor',feedbackKey:'2'},
+  {ts:'2026-06-15T22:10:00Z',state:'D',stateName:'Equilíbrio',practice:'Respiração Coerente',feedback:'Muito melhor',feedbackKey:'1'},
+  {ts:'2026-06-15T18:45:00Z',state:'C',stateName:'Sem Energia',practice:'Foco 4-4',feedback:'Igual',feedbackKey:'3'},
+  {ts:'2026-06-15T14:20:00Z',state:'E',stateName:'Alta Performance',practice:'Foco 4-4',feedback:'Muito melhor',feedbackKey:'1'},
+  {ts:'2026-06-14T21:05:00Z',state:'B',stateName:'Sobrecarregado',practice:'Respiração Caixa',feedback:'Um pouco melhor',feedbackKey:'2'},
+  {ts:'2026-06-14T07:30:00Z',state:'A',stateName:'Cabeça a Mil',practice:'BW Ansiedade e Pânico',feedback:'Pior',feedbackKey:'4'},
+  {ts:'2026-06-13T19:50:00Z',state:'B',stateName:'Sobrecarregado',practice:'Respiração Caixa',feedback:'Muito melhor',feedbackKey:'1'},
+  {ts:'2026-06-13T11:15:00Z',state:'C',stateName:'Sem Energia',practice:'Foco 4-4',feedback:'Um pouco melhor',feedbackKey:'2'},
+  {ts:'2026-06-12T16:40:00Z',state:'D',stateName:'Equilíbrio',practice:'Respiração Coerente',feedback:'Muito melhor',feedbackKey:'1'},
+];
+const DEFAULT_AUDIOS=[
+  {name:'BW Ansiedade e Pânico',size:'4.2 MB',state:'Cabeça a Mil',url:'https://s3.sa-east-1.amazonaws.com/midia.marketing4nerds.com/download/BW+Ansiedade+e+Pa%CC%82nico.mp3'},
+  {name:'Respiração Caixa',size:'3.8 MB',state:'Sobrecarregado',url:'https://s3.sa-east-1.amazonaws.com/midia.marketing4nerds.com/download/CAIXA+5min.mp3'},
+  {name:'Foco 4-4',size:'3.9 MB',state:'Sem Energia / Alta Performance',url:'https://s3.sa-east-1.amazonaws.com/midia.marketing4nerds.com/download/FOCO+4-4+5min.mp3'},
+  {name:'Respiração Coerente',size:'4.1 MB',state:'Equilíbrio',url:'https://s3.sa-east-1.amazonaws.com/midia.marketing4nerds.com/download/COERENTE+5min.mp3'},
+];
+const DEFAULT_CONFIG={
+  welcome:'Vou fazer 5 perguntas rápidas para entender como você está agora e indicar a prática de respiração mais adequada para este momento.',
+  questions:[
+    {text:'Neste momento, qual dessas frases mais combina com você?',opts:[{k:'A',v:'Minha cabeça não para.'},{k:'B',v:'Estou com coisa demais para dar conta.'},{k:'C',v:'Estou sem muita energia.'},{k:'D',v:'Estou me sentindo bem e equilibrado.'},{k:'E',v:'Tenho algo importante pela frente e quero estar no meu melhor.'}]},
+    {text:'Como você descreveria sua mente agora?',opts:[{k:'A',v:'Acelerada'},{k:'B',v:'Confusa'},{k:'C',v:'Lenta'},{k:'D',v:'Clara'},{k:'E',v:'Focada'}]},
+    {text:'Como você percebe seu corpo neste momento?',opts:[{k:'A',v:'Tenso'},{k:'B',v:'Sobrecarregado'},{k:'C',v:'Cansado'},{k:'D',v:'Confortável'},{k:'E',v:'Pronto para agir'}]},
+    {text:'O que você sente que mais precisa agora?',opts:[{k:'A',v:'Desacelerar'},{k:'B',v:'Organizar as ideias'},{k:'C',v:'Recuperar energia'},{k:'D',v:'Manter como estou'},{k:'E',v:'Entrar em modo de alta performance'}]},
+    {text:'Pensando nas próximas horas, o que seria mais útil para você?',opts:[{k:'A',v:'Mais calma'},{k:'B',v:'Mais clareza'},{k:'C',v:'Mais energia'},{k:'D',v:'Mais presença'},{k:'E',v:'Mais foco'}]}
+  ],
+  states:{
+    A:{nome:'Cabeça a Mil',momento:'Sua mente está em modo acelerado — processando muitos estímulos ao mesmo tempo, sem conseguir desacelerar.',gera:'Dificuldade de foco, sensação de urgência constante e um leve esgotamento mesmo sem ter feito muito.',busca:'Vamos ativar o freio natural do seu sistema nervoso e trazer de volta a sensação de espaço interno.',audio:'BW Ansiedade e Pânico',url:'https://s3.sa-east-1.amazonaws.com/midia.marketing4nerds.com/download/BW+Ansiedade+e+Pa%CC%82nico.mp3'},
+    B:{nome:'Sobrecarregado',momento:'Você está carregando mais do que consegue processar com tranquilidade — a sensação é de acúmulo e pressão.',gera:'Dificuldade para priorizar, mente congestionada e a sensação de que tudo é urgente ao mesmo tempo.',busca:'Vamos criar uma pausa estruturada para reorganizar o sistema e liberar a pressão interna.',audio:'Respiração Caixa',url:'https://s3.sa-east-1.amazonaws.com/midia.marketing4nerds.com/download/CAIXA+5min.mp3'},
+    C:{nome:'Sem Energia',momento:'Seu sistema está operando em baixa potência — com lentidão, pouca disposição e sensação de cansaço.',gera:'Procrastinação, dificuldade de iniciativa e uma sensação de distância das coisas ao redor.',busca:'Vamos ativar suavemente o seu sistema para recuperar clareza e disposição.',audio:'Foco 4-4',url:'https://s3.sa-east-1.amazonaws.com/midia.marketing4nerds.com/download/FOCO+4-4+5min.mp3'},
+    D:{nome:'Equilíbrio',momento:'Você está em um bom momento — estável, presente e com o sistema funcionando de forma saudável.',gera:'Mais clareza nas decisões, presença nas relações e capacidade de responder bem ao que aparece.',busca:'Vamos consolidar esse estado com uma prática de coerência para manter e aprofundar o equilíbrio.',audio:'Respiração Coerente',url:'https://s3.sa-east-1.amazonaws.com/midia.marketing4nerds.com/download/COERENTE+5min.mp3'},
+    E:{nome:'Alta Performance',momento:'Você está se preparando para dar o seu melhor — com foco, presença e disposição para executar.',gera:'Clareza de intenção, maior capacidade de concentração e menos dispersão nas ações.',busca:'Vamos calibrar seu sistema para entrar em modo de alta performance com mais precisão e presença.',audio:'Foco 4-4',url:'https://s3.sa-east-1.amazonaws.com/midia.marketing4nerds.com/download/FOCO+4-4+5min.mp3'}
+  }
+};
+</script>
+</body>
+</html>
