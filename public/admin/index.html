@@ -307,7 +307,7 @@ input[type=file]{display:none}
           <button class="btn btn-green" onclick="document.getElementById('file-in').click()">↑ Upload MP3</button>
         </div>
         <div class="tbl-wrap" style="margin-bottom:10px"><div id="aud-list"></div></div>
-        <div class="up-zone" onclick="document.getElementById('file-in').click()">
+        <div id="up-zone" class="up-zone" onclick="document.getElementById('file-in').click()">
           <div class="up-ic">♫</div>
           Clique para fazer upload de um novo arquivo MP3
           <div class="up-hint">O arquivo será salvo via Netlify Blobs e a URL atualizada automaticamente</div>
@@ -438,7 +438,7 @@ async function loadSessions() {
   try {
     const r = await fetch('/api/sessions', { headers: hdr() });
     if (r.ok) SESSIONS = await r.json();
-  } catch(e) { SESSIONS = MOCK_SESSIONS; }
+  } catch(e) { SESSIONS = []; }
 }
 async function loadConfig() {
   try {
@@ -501,7 +501,7 @@ function buildCharts(stCounts) {
     const d=new Date();d.setDate(d.getDate()-i);
     days.push(`${d.getDate()}/${d.getMonth()+1}`);
     const ds=d.toISOString().slice(0,10);
-    vals.push(SESSIONS.filter(s=>s.ts&&s.ts.startsWith(ds)).length || (i<7?Math.floor(Math.random()*4)+1:Math.floor(Math.random()*3)));
+    vals.push(SESSIONS.filter(s=>s.ts&&s.ts.startsWith(ds)).length);
   }
   new Chart(document.getElementById('c-days'),{type:'line',data:{labels:days,datasets:[{data:vals,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,0.08)',fill:true,tension:.35,pointRadius:2,pointBackgroundColor:'#1D9E75'}]},options:base});
 }
